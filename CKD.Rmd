@@ -5,10 +5,13 @@ output: html_notebook
 
 ```{r}
 library(tidyverse)
+setwd('/Users/gorjanbuzharovski/Documents/CKD/Chronic\ Kindey\ Disease/')
 kdata <- read_csv("csv_result-chronic_kidney_disease_full.csv")
 kdata <- kdata %>% mutate_at(c('age','bp', 'su', 'bgr', 'bu',
                   'sc', 'sod', 'pot', 'hemo',
                   'pcv', 'wbcc', 'rbcc'), ~as.numeric(.))
+kdata <- kdata %>%
+  mutate(class = ifelse( class == "no" , "notckd", class))
 ```
 ```{r}
 kdata
@@ -34,3 +37,39 @@ for (name in names[-1])
   }
 }
 ```
+```{r}
+set.seed(678)
+shuffle_index <- sample(1:nrow(kdata))
+head(shuffle_index)
+
+kdata <- kdata[shuffle_index, ]
+head(kdata)
+```
+```{r}
+create_train_test <- function(data, size = 0.8, train = TRUE) {
+    n_row <- nrow(data)
+    total_row <- size * n_row
+    print(total_row)
+    train_sample <- 0: total_row
+    if (train == TRUE) {
+        return (data[train_sample, ])
+    } else {
+        return (data[-train_sample, ])
+    }
+}
+
+data_train <- create_train_test(kdata, 0.8, train = TRUE)
+data_test <- create_train_test(kdata, 0.8, train = FALSE)
+```
+```{r}
+library(rpart)
+library(rpart.plot)
+fit <- rpart(class~., data = data_train[-1], method = 'class')
+rpart.plot(fit, extra = 106)
+```
+```{r}
+predict_unseen <-predict(fit, data_test, type = 'class')
+table_mat <- table(data_test$class, predict_unseen)
+table_mat
+```
+accuracy_Test <- sum(diag(table_mat)) / sum(table_mat)
