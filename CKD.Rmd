@@ -1,0 +1,36 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+kdata <- read_csv("csv_result-chronic_kidney_disease_full.csv")
+kdata <- kdata %>% mutate_at(c('age','bp', 'su', 'bgr', 'bu',
+                  'sc', 'sod', 'pot', 'hemo',
+                  'pcv', 'wbcc', 'rbcc'), ~as.numeric(.))
+```
+```{r}
+kdata
+```
+```{r}
+names <- names(kdata)
+for (name in names[-1])
+{
+  if (name %in% c('age','bp', 'su', 'bgr', 'bu',
+                  'sc', 'sod', 'pot', 'hemo',
+                  'pcv', 'wbcc', 'rbcc')){
+    print(
+    ggplot(data = kdata) +
+     geom_histogram(mapping = aes_(x = as.name(name), fill = substitute(class)))
+          )
+  }
+  else{
+    print(
+    ggplot(data = kdata) +
+     geom_bar(mapping = aes_(x = as.name(name), fill = substitute(class))
+              )
+    )
+  }
+}
+```
